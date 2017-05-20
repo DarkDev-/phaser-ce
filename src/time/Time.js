@@ -84,6 +84,15 @@ Phaser.Time = function (game) {
     * @protected
     */
     this.elapsed = 0;
+    
+    /**
+    * Elapsed time since the last time update, in seconds, based on `now`.
+    *
+    * @property {number} deltaTime
+    * @see Phaser.Time.time
+    * @protected
+    */
+    this.deltaTime = 0;
 
     /**
     * The time in ms since the last time update, in milliseconds, based on `time`.
@@ -402,6 +411,8 @@ Phaser.Time.prototype = {
 
         // elapsed time between previous call and now - this could be a high resolution value
         this.elapsed = this.now - this.prevTime;
+        
+        this.deltaTime = this.elapsed / 1000;
 
         if (this.game.raf._isSetTimeOut)
         {
