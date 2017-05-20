@@ -23,7 +23,7 @@ PIXI.Sprite = function (texture) {
      * @property anchor
      * @type Point
      */
-    this.anchor = new PIXI.Point();
+    this.anchor = new PIXI.Point(0.5,0.5);
 
     /**
      * The texture that the sprite is using
