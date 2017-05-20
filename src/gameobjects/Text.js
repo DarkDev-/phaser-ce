@@ -132,6 +132,26 @@ Phaser.Text = function (game, x, y, text, style) {
     this.useAdvancedWrap = false;
 
     /**
+     * The Regular Expression that is used to split the text up into lines, in
+     * multi-line text. By default this is `/(?:\r\n|\r|\n)/`.
+     * You can change this RegExp to be anything else that you may need.
+     * @property {Object} splitRegExp
+     */
+    this.splitRegExp = /(?:\r\n|\r|\n)/;
+
+
+    /** The maximum number of characters that can be set.
+    * @property {number} characterLimitSize
+    */
+    this.characterLimitSize = -1;
+
+    /** The suffix that is applied to truncated text that is longer than the
+    * characterLimitSize.
+    * @property {string} characterLimitSuffix
+    */
+    this.characterLimitSuffix = '';
+
+    /**
      * @property {number} _res - Internal canvas resolution var.
      * @private
      */
@@ -367,13 +387,17 @@ Phaser.Text.prototype.updateText = function () {
 
     var outputText = this.text;
 
+    if (this.characterLimitSize > -1 && this.characterLimitSize < outputText.length) {
+        outputText = this.text.substring(0, this.characterLimitSize) + this.characterLimitSuffix;
+    }
+
     if (this.style.wordWrap)
     {
         outputText = this.runWordWrap(this.text);
     }
 
     //  Split text into lines
-    var lines = outputText.split(/(?:\r\n|\r|\n)/);
+    var lines = outputText.split(this.splitRegExp);
 
     //  Calculate text width
     var tabs = this.style.tabs;
@@ -1649,6 +1673,22 @@ Phaser.Text.prototype.getBounds = function (matrix) {
 };
 
 /**
+* Sets the character limit of the text, with a suffix.
+* If the text is longer than this limit, it is truncated and the suffix is appended.
+*
+* @method Phaser.Text#setCharacterLimit
+* @param {number} [characterLimit] - The x coordinate of the Text Bounds region.
+* @param {string} [suffix] - The suffix to append to the truncated text.
+*/
+Phaser.Text.prototype.setCharacterLimit = function (characterLimit, suffix) {
+
+    this.characterLimitSuffix = (suffix === undefined) ? '' : suffix;
+    this.characterLimitSize = characterLimit;
+
+    this.updateText();
+};
+
+/**
 * The text to be displayed by this Text object.
 * Use a \n to insert a carriage return and split the text.
 * The text will be rendered with any style currently set.
@@ -1882,6 +1922,7 @@ Object.defineProperty(Phaser.Text.prototype, 'align', {
 
     set: function(value) {
 
+        value = value.toLowerCase();
         if (value !== this.style.align)
         {
             this.style.align = value;
@@ -1956,6 +1997,7 @@ Object.defineProperty(Phaser.Text.prototype, 'boundsAlignH', {
 
     set: function(value) {
 
+        value = value.toLowerCase();
         if (value !== this.style.boundsAlignH)
         {
             this.style.boundsAlignH = value;
@@ -1979,6 +2021,7 @@ Object.defineProperty(Phaser.Text.prototype, 'boundsAlignV', {
 
     set: function(value) {
 
+        value = value.toLowerCase();
         if (value !== this.style.boundsAlignV)
         {
             this.style.boundsAlignV = value;
@@ -2237,6 +2280,7 @@ Object.defineProperty(Phaser.Text.prototype, 'shadowFill', {
 });
 
 /**
+* The width of the Text object in pixels. This is width of the Texture frame / the Text.resolution.
 * @name Phaser.Text#width
 * @property {number} width - The width of the Text. Setting this will modify the scale to achieve the value requested.
 */
@@ -2250,7 +2294,7 @@ Object.defineProperty(Phaser.Text.prototype, 'width', {
             this.dirty = false;
         }
 
-        return this.scale.x * this.texture.frame.width;
+        return this.scale.x * (this.texture.frame.width / this.resolution);
     },
 
     set: function(value) {
@@ -2262,6 +2306,7 @@ Object.defineProperty(Phaser.Text.prototype, 'width', {
 });
 
 /**
+* The height of the Text object in pixels. This is height of the Texture frame / the Text.resolution.
 * @name Phaser.Text#height
 * @property {number} height - The height of the Text. Setting this will modify the scale to achieve the value requested.
 */
@@ -2275,7 +2320,7 @@ Object.defineProperty(Phaser.Text.prototype, 'height', {
             this.dirty = false;
         }
 
-        return this.scale.y * this.texture.frame.height;
+        return this.scale.y * (this.texture.frame.height / this.resolution);
     },
 
     set: function(value) {
