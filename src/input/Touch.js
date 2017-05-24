@@ -425,10 +425,7 @@ Phaser.Touch.prototype = {
             this.touchEndCallback.call(this.callbackContext, event);
         }
 
-        if (this.preventDefault)
-        {
-            event.preventDefault();
-        }
+        event.preventDefault();
 
         //  For touch end its a list of the touch points that have been removed from the surface
         //  https://developer.mozilla.org/en-US/docs/DOM/TouchList
