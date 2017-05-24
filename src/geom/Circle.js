@@ -249,6 +249,17 @@ Phaser.Circle.prototype = {
     */
     toString: function () {
         return "[{Phaser.Circle (x=" + this.x + " y=" + this.y + " diameter=" + this.diameter + " radius=" + this.radius + ")}]";
+    },
+    
+    /**
+    * Determines whether the specified circle intersects with this circle.
+    * 
+    * @method Phaser.Circle#intersectsCircle
+    * @param {Phaser.Circle} circle - The circle to test.
+    * @return {boolean} True if it intersects, otherwise false.
+    */
+    intersectsCircle: function (circle) {
+        return Phaser.Circle.intersects(circle, this);
     }
 
 };
@@ -540,31 +551,33 @@ Phaser.Circle.circumferencePoint = function (a, angle, asDegrees, out) {
 * @param {Phaser.Rectangle} r - The Rectangle object to test.
 * @return {boolean} True if the two objects intersect, otherwise false.
 */
-Phaser.Circle.intersectsRectangle = function (c, r) {
-
-    var cx = Math.abs(c.x - r.x - r.halfWidth);
-    var xDist = r.halfWidth + c.radius;
+Phaser.Circle.intersectsRectangle = function (c, r) {    
+    var rhw = r.width / 2;
+    var rhh = r.height / 2;
+    
+    var cx = Math.abs(c.x - r.x - rhw);
+    var xDist = rhw + c.radius;
 
     if (cx > xDist)
     {
         return false;
     }
 
-    var cy = Math.abs(c.y - r.y - r.halfHeight);
-    var yDist = r.halfHeight + c.radius;
+    var cy = Math.abs(c.y - r.y - rhh);
+    var yDist = rhh + c.radius;
 
     if (cy > yDist)
     {
         return false;
     }
 
-    if (cx <= r.halfWidth || cy <= r.halfHeight)
+    if (cx <= rhw || cy <= rhh)
     {
         return true;
     }
 
-    var xCornerDist = cx - r.halfWidth;
-    var yCornerDist = cy - r.halfHeight;
+    var xCornerDist = cx - rhw;
+    var yCornerDist = cy - rhh;
     var xCornerDistSq = xCornerDist * xCornerDist;
     var yCornerDistSq = yCornerDist * yCornerDist;
     var maxCornerDistSq = c.radius * c.radius;

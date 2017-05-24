@@ -30,7 +30,7 @@ Phaser.Input = function (game) {
     * @default
     */
     this.hitContext = null;
-
+    
     /**
     * An array of callbacks that will be fired every time the activePointer receives a move event from the DOM.
     * To add a callback to this array please use `Input.addMoveCallback`.
@@ -88,7 +88,13 @@ Phaser.Input = function (game) {
     * Default size of 44px (Apples recommended "finger tip" size) but can be changed to anything.
     * @property {Phaser.Circle} circle
     */
-    this.circle = null;
+    this.circle = new Phaser.Circle(0, 0, 44);
+    
+    /**
+    * If fingertip size should be taken into account for hit tests.
+    * @property {boolean} fingerHitTest
+    */
+    this.fingerHitTest = false;
 
     /**
     * @property {Phaser.Point} scale - The scale by which all input coordinates are multiplied; calculated by the ScaleManager. In an un-scaled game the values will be x = 1 and y = 1.
@@ -348,6 +354,12 @@ Phaser.Input = function (game) {
     * @private
     */
     this._y = 0;
+    
+    /**
+    * @property {number} _rec - Rectangle cache for hit detection.
+    * @private
+    */
+    this._rec = new Phaser.Rectangle(0,0,0,0);
 
 };
 
@@ -413,8 +425,6 @@ Phaser.Input.prototype = {
         this.speed = new Phaser.Point();
         this.position = new Phaser.Point();
         this._oldPosition = new Phaser.Point();
-
-        this.circle = new Phaser.Circle(0, 0, 44);
 
         this.activePointer = this.mousePointer;
 
@@ -939,13 +949,23 @@ Phaser.Input.prototype = {
         this.getLocalPosition(displayObject, pointer, this._localPoint);
 
         localPoint.copyFrom(this._localPoint);
+        
+        if(this.fingerHitTest)
+        {
+            this.circle.x = localPoint.x;
+            this.circle.y = localPoint.y;
+        }
 
         if (displayObject.hitArea && displayObject.hitArea.contains)
         {
+            // TODO: implement finger tip size collision checking
+            
             return (displayObject.hitArea.contains(this._localPoint.x, this._localPoint.y));
         }
         else if (displayObject instanceof Phaser.TileSprite)
         {
+            // TODO: implement finger tip size collision checking
+            
             var width = displayObject.width;
             var height = displayObject.height;
             var x1 = -width * displayObject.anchor.x;
@@ -961,12 +981,24 @@ Phaser.Input.prototype = {
             }
         }
         else if (displayObject instanceof PIXI.Sprite)
-        {
+        {            
             var width = displayObject.texture.frame.width;
             var height = displayObject.texture.frame.height;
             var x1 = -width * displayObject.anchor.x;
-
-            if (this._localPoint.x >= x1 && this._localPoint.x < x1 + width)
+            
+            if(this.fingerHitTest)
+            {
+                this._rec.x = x1;
+                this._rec.y = -height * displayObject.anchor.y;
+                this._rec.width = width;
+                this._rec.height = height;
+                
+                if(this._rec.intersectsCircle(this.circle))
+                {
+                    return true;
+                }
+            }
+            else if (this._localPoint.x >= x1 && this._localPoint.x < x1 + width)
             {
                 var y1 = -height * displayObject.anchor.y;
 
@@ -987,11 +1019,35 @@ Phaser.Input.prototype = {
                     continue;
                 }
 
-                //  Only deal with fills..
-                if (data.shape && data.shape.contains(this._localPoint.x, this._localPoint.y))
+                //  Only deal with fills..                
+                if (data.shape)
                 {
-                    return true;
-                }
+                    if(this.fingerHitTest)
+                    {
+                        if(data.shape.intersectsCircle)
+                        {
+                            if(data.shape.intersectsCircle(this.circle))
+                            {
+                                return true;
+                            }
+                        } 
+                        else
+                        {
+                            console.warn( "Shape {type=" + data.shape.type + "} didn't contain circle intersection which is needed for finger tip hit detection. Using fallback instead." );
+                            if(data.shape.contains(this._localPoint.x, this._localPoint.y))
+                            {
+                                return true;
+                            }
+                        }
+                    } 
+                    else
+                    {
+                        if(data.shape.contains(this._localPoint.x, this._localPoint.y))
+                        {
+                            return true;
+                        }
+                    }
+                }                
             }
         }
 

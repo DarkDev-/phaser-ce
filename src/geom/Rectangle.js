@@ -350,6 +350,17 @@ Phaser.Rectangle.prototype = {
         return Phaser.Rectangle.intersectsRaw(this, left, right, top, bottom, tolerance);
 
     },
+    
+    /**
+    * Determines whether the specified circle intersects with the region defined by this Rectangle object.
+    * 
+    * @method Phaser.Rectangle#intersectsCircle
+    * @param {Phaser.Circle} circle - The circle to test.
+    * @return {boolean} True if it intersects, otherwise false.
+    */
+    intersectsCircle: function (circle) {
+        return Phaser.Circle.intersectsRectangle(circle, this);
+    },
 
     /**
     * Adds two Rectangles together to create a new Rectangle object, by filling in the horizontal and vertical space between the two Rectangles.

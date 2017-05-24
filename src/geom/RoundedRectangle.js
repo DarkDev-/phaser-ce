@@ -101,8 +101,18 @@ Phaser.RoundedRectangle.prototype = {
 
         return false;
 
+    },
+    
+    /**
+    * Determines whether the specified circle intersects with the region defined by this Rounded Rectangle object.
+    * 
+    * @method Phaser.RoundedRectangle#intersectsCircle
+    * @param {Phaser.Circle} circle - The circle to test.
+    * @return {boolean} True if it intersects, otherwise false.
+    */
+    intersectsCircle: function (circle) {
+        return Phaser.Circle.intersectsRectangle(circle, this);
     }
-
 };
 
 Phaser.RoundedRectangle.prototype.constructor = Phaser.RoundedRectangle;
