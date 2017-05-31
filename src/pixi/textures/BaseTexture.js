@@ -19,7 +19,7 @@ PIXI.BaseTexture = function(source, scaleMode)
      * @property resolution
      * @type Number
      */
-    this.resolution = 1;
+    this.resolution = PIXI.BaseTexture.standardResolution;
     
     /**
      * [read-only] The width of the base texture set when the image has loaded
@@ -244,3 +244,5 @@ PIXI.BaseTexture.fromCanvas = function(canvas, scaleMode)
 
     return new PIXI.BaseTexture(canvas, scaleMode);
 };
+
+PIXI.BaseTexture.standardResolution = 1.0;
