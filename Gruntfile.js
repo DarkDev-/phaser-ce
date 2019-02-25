@@ -567,7 +567,7 @@ module.exports = function (grunt) {
     
     grunt.registerTask('standard', '', function() {
 
-        grunt.option('exclude', 'gamepad,net,arcade,ninja,p2,tilemaps,particles,creature,video,rope,tilesprite,weapon');
+        grunt.option('exclude', 'gamepad,net,ninja,p2,tilemaps,creature,video,rope,tilesprite,weapon');
         grunt.option('filename', 'phaser-standard');
         grunt.option('sourcemap', true);
         grunt.option('copy', true);

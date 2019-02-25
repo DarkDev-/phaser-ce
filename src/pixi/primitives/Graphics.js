@@ -822,6 +822,13 @@ PIXI.Graphics.prototype._renderCanvas = function(renderSession)
         var resolution = renderSession.resolution;
         var tx = (transform.tx * renderSession.resolution) + renderSession.shakeX;
         var ty = (transform.ty * renderSession.resolution) + renderSession.shakeY;
+        
+        var roundPixels = this.roundPixels || renderSession.roundPixels && this.roundPixels == undefined;
+        if( roundPixels )
+        {
+            tx |= 0;
+            ty |= 0;
+        }
 
         context.setTransform(transform.a * resolution,
                              transform.b * resolution,

@@ -22,8 +22,10 @@ Phaser.Component.FixedToCamera.postUpdate = function () {
 
     if (this.fixedToCamera)
     {
-        this.position.x = (this.game.camera.view.x + this.cameraOffset.x) / this.game.camera.scale.x;
-        this.position.y = (this.game.camera.view.y + this.cameraOffset.y) / this.game.camera.scale.y;
+        this.position.x = this.game.world.cameraTopLeft.x + this.cameraOffset.x * (1 / this.game.camera.zoom.x);
+        this.position.y = this.game.world.cameraTopLeft.y + this.cameraOffset.y * (1 / this.game.camera.zoom.y);
+        this.scale.x = this.cameraScale.x * ( 1 / this.game.camera.zoom.x );
+        this.scale.y = this.cameraScale.y * ( 1 / this.game.camera.zoom.x );
     }
 
 };
@@ -67,6 +69,7 @@ Phaser.Component.FixedToCamera.prototype = {
             {
                 this._fixedToCamera = true;
                 this.cameraOffset.set(this.x, this.y);
+                this.cameraScale.set(this.scale.x, this.scale.y);
             }
             else
             {
@@ -83,6 +86,8 @@ Phaser.Component.FixedToCamera.prototype = {
     * The values are relative to the top-left of the camera view and in addition to any parent of the Game Object on the display list.
     * @property {Phaser.Point} cameraOffset
     */
-    cameraOffset: new Phaser.Point()
+    cameraOffset: new Phaser.Point(),
+
+    cameraScale: new Phaser.Point()
 
 };

@@ -14,12 +14,13 @@
 PIXI.BaseTexture = function(source, scaleMode)
 {
     /**
-     * The Resolution of the texture. 
+     * The Resolution and Inverted Resolution of the texture. 
      *
      * @property resolution
      * @type Number
      */
-    this.resolution = PIXI.BaseTexture.standardResolution;
+    this._resolution = PIXI.BaseTexture.standardResolution;
+    this.resolutionInv = 1.0 / PIXI.BaseTexture.standardResolution;
     
     /**
      * [read-only] The width of the base texture set when the image has loaded
@@ -244,5 +245,16 @@ PIXI.BaseTexture.fromCanvas = function(canvas, scaleMode)
 
     return new PIXI.BaseTexture(canvas, scaleMode);
 };
+
+Object.defineProperty(PIXI.BaseTexture.prototype, 'resolution', {
+    get: function() {
+        return this._resolution;
+    },
+
+    set: function(value) {
+        this._resolution = value;
+        this.resolutionInv = 1 / value;
+    }
+});
 
 PIXI.BaseTexture.standardResolution = 1.0;

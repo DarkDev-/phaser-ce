@@ -1222,9 +1222,7 @@ Object.defineProperty(Phaser.Pointer.prototype, "duration", {
 Object.defineProperty(Phaser.Pointer.prototype, "worldX", {
 
     get: function () {
-
-        return this.game.world.camera.x + this.x;
-
+        return this.game.world.cameraTopLeft.x + this.x * (1 / this.game.camera.zoom.x);
     }
 
 });
@@ -1238,9 +1236,7 @@ Object.defineProperty(Phaser.Pointer.prototype, "worldX", {
 Object.defineProperty(Phaser.Pointer.prototype, "worldY", {
 
     get: function () {
-
-        return this.game.world.camera.y + this.y;
-
+        return this.game.world.cameraTopLeft.y + this.y * (1 / this.game.camera.zoom.y);
     }
 
 });

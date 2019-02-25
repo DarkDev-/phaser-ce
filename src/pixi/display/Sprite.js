@@ -109,6 +109,15 @@ PIXI.Sprite = function (texture) {
     */
     this.exists = true;
 
+    /**
+    * If this sprite should be rendered to the closest pixel (Only on Canvas). Set to undefined/null for using the context value instead.
+    *
+    * @property roundPixels
+    * @type any
+    * @default undefined
+    */
+   this.roundPixels = undefined;
+
     if (this.texture.baseTexture.hasLoaded)
     {
         this.onTextureUpdate();
@@ -131,11 +140,11 @@ PIXI.Sprite.prototype.constructor = PIXI.Sprite;
 Object.defineProperty(PIXI.Sprite.prototype, 'width', {
 
     get: function() {
-        return this.scale.x * this.texture.frame.width;
+        return this.scale.x * this.texture.frame.width * this.texture.baseTexture.resolutionInv;
     },
 
     set: function(value) {
-        this.scale.x = value / this.texture.frame.width;
+        this.scale.x = value / (this.texture.frame.width * this.texture.baseTexture.resolutionInv); 
         this._width = value;
     }
 
@@ -150,11 +159,11 @@ Object.defineProperty(PIXI.Sprite.prototype, 'width', {
 Object.defineProperty(PIXI.Sprite.prototype, 'height', {
 
     get: function() {
-        return  this.scale.y * this.texture.frame.height;
+        return  this.scale.y * this.texture.frame.height * this.texture.baseTexture.resolutionInv;
     },
 
     set: function(value) {
-        this.scale.y = value / this.texture.frame.height;
+        this.scale.y = value / (this.texture.frame.height * this.texture.baseTexture.resolutionInv);
         this._height = value;
     }
 
@@ -192,8 +201,8 @@ PIXI.Sprite.prototype.setTexture = function(texture, destroyBase)
 PIXI.Sprite.prototype.onTextureUpdate = function()
 {
     // so if _width is 0 then width was not set..
-    if (this._width) this.scale.x = this._width / this.texture.frame.width;
-    if (this._height) this.scale.y = this._height / this.texture.frame.height;
+    if (this._width) this.scale.x = this._width / (this.texture.frame.width * this.texture.baseTexture.resolutionInv);
+    if (this._height) this.scale.y = this._height / (this.texture.frame.height * this.texture.baseTexture.resolutionInv);
 };
 
 /**
@@ -213,8 +222,8 @@ PIXI.Sprite.prototype.onTextureUpdate = function()
 */
 PIXI.Sprite.prototype.getBounds = function(matrix)
 {
-    var width = this.texture.frame.width;
-    var height = this.texture.frame.height;
+    var width = (this.texture.frame.width * this.texture.baseTexture.resolutionInv);
+    var height = (this.texture.frame.height * this.texture.baseTexture.resolutionInv);
 
     var w0 = width * (1-this.anchor.x);
     var w1 = width * -this.anchor.x;
@@ -468,52 +477,62 @@ PIXI.Sprite.prototype._renderCanvas = function(renderSession, matrix)
         var tx = (wt.tx * renderSession.resolution) + renderSession.shakeX;
         var ty = (wt.ty * renderSession.resolution) + renderSession.shakeY;
 
-        //  Allow for pixel rounding
-        if (renderSession.roundPixels)
-        {
-            renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, tx | 0, ty | 0);
-            dx |= 0;
-            dy |= 0;
-        }
-        else
-        {
-            renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, tx, ty);
-        }
-
-        var cw = this.texture.crop.width;
-        var ch = this.texture.crop.height;
-
-        dx /= resolution;
-        dy /= resolution;
-
-        if (this.tint !== 0xFFFFFF)
-        {
-            if (this.texture.requiresReTint || this.cachedTint !== this.tint)
-            {
-                this.tintedTexture = PIXI.CanvasTinter.getTintedTexture(this, this.tint);
-
-                this.cachedTint = this.tint;
-                this.texture.requiresReTint = false;
-            }
-
-            renderSession.context.drawImage(this.tintedTexture, 0, 0, cw, ch, dx, dy, cw / resolution, ch / resolution);
-        }
-        else
-        {
-            var cx = this.texture.crop.x;
-            var cy = this.texture.crop.y;
-            renderSession.context.drawImage(this.texture.baseTexture.source, cx, cy, cw, ch, dx, dy, cw / resolution, ch / resolution);
-        }
-    }
-
-    for (var i = 0; i < this.children.length; i++)
-    {
-        this.children[i]._renderCanvas(renderSession);
-    }
-
-    if (this._mask)
-    {
-        renderSession.maskManager.popMask(renderSession);
-    }
+         //  Allow for pixel rounding
+         var roundPixels = this.roundPixels || renderSession.roundPixels && this.roundPixels == undefined;
+         if ( roundPixels )
+         {
+             renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, tx | 0, ty | 0);            
+         }
+         else
+         {
+             renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, tx, ty);
+         }
+ 
+         var cw = this.texture.crop.width;
+         var ch = this.texture.crop.height;
+         var dw = cw / resolution;
+         var dh = ch / resolution;
+ 
+         dx /= resolution;
+         dy /= resolution;
+         
+         if( roundPixels )
+         {
+             dx |= 0;
+             dy |= 0;
+ 
+             dw = Math.round( dw * this.worldScale.x ) / this.worldScale.x;
+             dh = Math.round( dh * this.worldScale.y ) / this.worldScale.y;
+         }
+ 
+         if (this.tint !== 0xFFFFFF)
+         {
+             if (this.texture.requiresReTint || this.cachedTint !== this.tint)
+             {
+                 this.tintedTexture = PIXI.CanvasTinter.getTintedTexture(this, this.tint);
+ 
+                 this.cachedTint = this.tint;
+                 this.texture.requiresReTint = false;
+             }
+ 
+             renderSession.context.drawImage(this.tintedTexture, 0, 0, cw, ch, dx, dy, dw, dh);
+         }
+         else
+         {
+             var cx = this.texture.crop.x;
+             var cy = this.texture.crop.y;
+             renderSession.context.drawImage(this.texture.baseTexture.source, cx, cy, cw, ch, dx, dy, dw, dh);
+         }
+     }
+ 
+     for (var i = 0; i < this.children.length; i++)
+     {
+         this.children[i]._renderCanvas(renderSession);
+     }
+ 
+     if (this._mask)
+     {
+         renderSession.maskManager.popMask(renderSession);
+     }
 
 };

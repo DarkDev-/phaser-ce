@@ -684,10 +684,10 @@ Phaser.Text.prototype.updateShadow = function (state) {
 
     if (state)
     {
-        this.context.shadowOffsetX = this.style.shadowOffsetX;
-        this.context.shadowOffsetY = this.style.shadowOffsetY;
+        this.context.shadowOffsetX = Math.round( this.style.shadowOffsetX * this.resolution );
+        this.context.shadowOffsetY = Math.round( this.style.shadowOffsetY * this.resolution );
         this.context.shadowColor = this.style.shadowColor;
-        this.context.shadowBlur = this.style.shadowBlur;
+        this.context.shadowBlur = Math.round( this.style.shadowBlur * this.resolution );
     }
     else
     {

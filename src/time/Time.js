@@ -246,6 +246,8 @@ Phaser.Time = function (game) {
     * @protected
     */
     this.timeExpected = 0;
+    
+    this.maxTimestepMS = 100;
 
     /**
     * A {@link Phaser.Timer} object bound to the master clock (this Time object) which events can be added to.
@@ -410,7 +412,8 @@ Phaser.Time.prototype = {
         this.now = time;
 
         // elapsed time between previous call and now - this could be a high resolution value
-        this.elapsed = this.now - this.prevTime;
+        this.elapsed = Math.min( this.maxTimestepMS, this.now - this.prevTime );
+        //this.elapsed = this.now - this.prevTime;
         
         this.deltaTime = this.elapsed / 1000;
 

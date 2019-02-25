@@ -14,7 +14,10 @@
  * @param {Phaser.Game} game - Reference to the current game instance.
  * @param {string} key - Asset key for the sound.
  */
-Phaser.AudioSprite = function (game, key) {
+Phaser.AudioSprite = function (game, key, markerStartOffset, markerEndOffset) {
+
+    if(markerStartOffset == undefined) markerStartOffset = 0;
+    if(markerEndOffset == undefined) markerEndOffset = 0;
 
     /**
     * A reference to the currently running Game.
@@ -58,7 +61,7 @@ Phaser.AudioSprite = function (game, key) {
         var marker = this.config.spritemap[k];
         var sound = this.game.add.sound(this.key);
         
-        sound.addMarker(k, marker.start, (marker.end - marker.start), null, marker.loop);
+        sound.addMarker(k, Math.max( 0, marker.start + markerStartOffset ), (marker.end + markerEndOffset) - (marker.start + markerStartOffset), null, marker.loop);
         
         this.sounds[k] = sound;
     }

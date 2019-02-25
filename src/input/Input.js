@@ -360,6 +360,12 @@ Phaser.Input = function (game) {
     * @private
     */
     this._rec = new Phaser.Rectangle(0,0,0,0);
+    
+    /**
+    * @property {number} _circle - Circle cache for hit detection.
+    * @private
+    */
+    this._circle = new Phaser.Circle(0, 0, 0);
 
 };
 
@@ -946,44 +952,44 @@ Phaser.Input.prototype = {
             return false;
         }
 
-        this.getLocalPosition(displayObject, pointer, this._localPoint);
-
+        // pretty ugly hack, pointer should take world scale into account (because localPoint does)
+        this._localPoint.x = pointer.x * this.game.world.scale.x;
+        this._localPoint.y = pointer.y * this.game.world.scale.y;
+        
+        this.getLocalPosition(displayObject, this._localPoint, this._localPoint);
+        
         localPoint.copyFrom(this._localPoint);
         
         if(this.fingerHitTest)
         {
-            this.circle.x = localPoint.x;
-            this.circle.y = localPoint.y;
+            this._circle.x = localPoint.x;
+            this._circle.y = localPoint.y;
+            this._circle.diameter = this.circle.diameter;
         }
 
         if (displayObject.hitArea && displayObject.hitArea.contains)
         {
-            // TODO: implement finger tip size collision checking
-            
+            if(this.fingerHitTest)
+            {
+                if(displayObject.hitArea.intersectsCircle)
+                {
+                    if(displayObject.hitArea.intersectsCircle(this._circle))
+                    {
+                        return true;
+                    }
+                } 
+                else
+                {
+                    console.warn( "HitArea {type=" + displayObject.hitArea.type + "} didn't contain circle intersection which is needed for finger tip hit detection. Using fallback instead." );
+                    return (displayObject.hitArea.contains(this._localPoint.x, this._localPoint.y));
+                }
+            } 
             return (displayObject.hitArea.contains(this._localPoint.x, this._localPoint.y));
         }
-        else if (displayObject instanceof Phaser.TileSprite)
-        {
-            // TODO: implement finger tip size collision checking
-            
-            var width = displayObject.width;
-            var height = displayObject.height;
-            var x1 = -width * displayObject.anchor.x;
-
-            if (this._localPoint.x >= x1 && this._localPoint.x < x1 + width)
-            {
-                var y1 = -height * displayObject.anchor.y;
-
-                if (this._localPoint.y >= y1 && this._localPoint.y < y1 + height)
-                {
-                    return true;
-                }
-            }
-        }
-        else if (displayObject instanceof PIXI.Sprite)
+        else if (displayObject instanceof PIXI.Sprite || displayObject instanceof Phaser.TileSprite)
         {            
-            var width = displayObject.texture.frame.width;
-            var height = displayObject.texture.frame.height;
+            var width = displayObject.texture.frame.width * displayObject.texture.baseTexture.resolutionInv;
+            var height = displayObject.texture.frame.height * displayObject.texture.baseTexture.resolutionInv;
             var x1 = -width * displayObject.anchor.x;
             
             if(this.fingerHitTest)
@@ -993,7 +999,7 @@ Phaser.Input.prototype = {
                 this._rec.width = width;
                 this._rec.height = height;
                 
-                if(this._rec.intersectsCircle(this.circle))
+                if(this._rec.intersectsCircle(this._circle))
                 {
                     return true;
                 }
@@ -1026,7 +1032,7 @@ Phaser.Input.prototype = {
                     {
                         if(data.shape.intersectsCircle)
                         {
-                            if(data.shape.intersectsCircle(this.circle))
+                            if(data.shape.intersectsCircle(this._circle))
                             {
                                 return true;
                             }
@@ -1169,7 +1175,7 @@ Object.defineProperty(Phaser.Input.prototype, "totalActivePointers", {
 Object.defineProperty(Phaser.Input.prototype, "worldX", {
 
     get: function () {
-        return this.game.camera.view.x + this.x;
+        return this.game.world.cameraTopLeft.x + this.x * (1 / this.game.camera.zoom.x);
     }
 
 });
@@ -1183,7 +1189,7 @@ Object.defineProperty(Phaser.Input.prototype, "worldX", {
 Object.defineProperty(Phaser.Input.prototype, "worldY", {
 
     get: function () {
-        return this.game.camera.view.y + this.y;
+        return this.game.world.cameraTopLeft.y + this.y * (1 / this.game.camera.zoom.y);
     }
 
 });

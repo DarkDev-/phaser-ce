@@ -73,6 +73,48 @@ Phaser.World.prototype.boot = function () {
 
 };
 
+Phaser.World.prototype.displayObjectUpdateTransform = function (parent) {
+
+        var p = this.parent;
+
+        // create some matrix refs for easy access
+        var pt = p.worldTransform;
+        var wt = this.worldTransform;
+
+        // temporary matrix variables
+        var a, d, tx, ty;
+
+        // lets do the fast version as we know there is no rotation..
+        a  = this.scale.x * this.camera.zoom.x;
+        d  = this.scale.y * this.camera.zoom.y;
+
+        tx = -this.camera.view.x * a + this.width * this.camera.zoomAnchor.x;
+        ty = -this.camera.view.y * d + this.height * this.camera.zoomAnchor.y;
+
+        wt.a  = a;
+        wt.b  = 0;
+        wt.c  = 0;
+        wt.d  = d;
+        wt.tx = tx;
+        wt.ty = ty;
+
+        //  Set the World values
+        this.worldAlpha = this.alpha;
+        this.worldPosition.set(tx, ty);
+        this.worldScale.set(a, d);
+        
+        // reset the bounds each time this is called!
+        this._currentBounds = null;
+
+        //  Custom callback?
+        if (this.transformCallback)
+        {
+            this.transformCallback.call(this.transformCallbackContext, wt, pt);
+        }
+
+        return this;
+};
+
 /**
 * Called whenever the State changes or resets.
 * 
@@ -240,6 +282,15 @@ Phaser.World.prototype.wrap = function (sprite, padding, useBounds, horizontal, 
 
 };
 
+Phaser.World.prototype.postUpdate = function() {
+
+    this.position.set(this.camera.view.x - this.width * ( 1 / this.scale.x ) * this.camera.zoomAnchor.x * ( 1 / this.camera.zoom.x ),
+                      this.camera.view.y - this.height * ( 1 / this.scale.y ) * this.camera.zoomAnchor.y * ( 1 / this.camera.zoom.y ) );
+
+    Phaser.Group.prototype.postUpdate.call(this);
+
+}
+
 /**
 * @name Phaser.World#width
 * @property {number} width - Gets or sets the current width of the game world. The world can never be smaller than the game (canvas) dimensions.
@@ -286,6 +337,14 @@ Object.defineProperty(Phaser.World.prototype, "height", {
         this._height = value;
         this._definedSize = true;
 
+    }
+
+});
+
+Object.defineProperty(Phaser.World.prototype, "cameraTopLeft", {
+
+    get: function () {        
+        return this.position;
     }
 
 });

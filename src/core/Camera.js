@@ -92,6 +92,13 @@ Phaser.Camera = function (game, id, x, y, width, height) {
     this.scale = null;
 
     /**
+    * @property {Phaser.Point} zoom
+    */
+    this.zoom = new Phaser.Point( 1.0, 1.0 );
+
+    this.zoomAnchor = new Phaser.Point( 0, 0 );
+
+    /**
     * @property {number} totalInView - The total number of Sprites with `autoCull` set to `true` that are visible by this Camera.
     * @readonly
     */
@@ -242,7 +249,7 @@ Phaser.Camera.prototype = {
 
         this.displayObject = this.game.world;
 
-        this.scale = this.game.world.scale;
+        this.scale = new Phaser.Point(1.0,1.0); //this.game.world.scale;
 
         this.game.camera = this;
 
@@ -513,8 +520,8 @@ Phaser.Camera.prototype = {
             this._shake.y = Math.floor(this._shake.y);
         }
 
-        this.displayObject.position.x = -this.view.x;
-        this.displayObject.position.y = -this.view.y;
+        // this.displayObject.position.x = -this.view.x * this.displayObject.scale.x;
+        // this.displayObject.position.y = -this.view.y * this.displayObject.scale.y;
 
     },
 
@@ -635,8 +642,8 @@ Phaser.Camera.prototype = {
             this.view.floor();
         }
 
-        this.displayObject.position.x = -this.view.x;
-        this.displayObject.position.y = -this.view.y;
+        // this.displayObject.position.x = -this.view.x * this.displayObject.scale.x;
+        // this.displayObject.position.y = -this.view.y * this.displayObject.scale.y;
 
     },
 

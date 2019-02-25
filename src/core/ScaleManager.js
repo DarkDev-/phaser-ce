@@ -1153,10 +1153,10 @@ Phaser.ScaleManager.prototype = {
         this.bounds.setTo(this.offset.x, this.offset.y, this.width, this.height);
 
         // Can be invoked in boot pre-input
-        if (this.game.input && this.game.input.scale)
-        {
-            this.game.input.scale.setTo(this.scaleFactor.x, this.scaleFactor.y);
-        }
+        // if (this.game.input && this.game.input.scale)
+        // {
+            // this.game.input.scale.setTo(this.scaleFactor.x, this.scaleFactor.y);
+        // }
 
     },
 
